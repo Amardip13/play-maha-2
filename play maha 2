@@ -1,0 +1,160 @@
+import { useState, useEffect } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+export default function PlayMahaApp() {
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [username, setUsername] = useState("");
+  const [teamCreated, setTeamCreated] = useState(false);
+  const [selectedPlayers, setSelectedPlayers] = useState([]);
+  const [wallet, setWallet] = useState(1000);
+  const [joinedContest, setJoinedContest] = useState(false);
+  const [selectedSport, setSelectedSport] = useState("cricket");
+  const [showResults, setShowResults] = useState(false);
+  const [referralCode, setReferralCode] = useState("");
+  const [usedReferral, setUsedReferral] = useState(false);
+  const [sportsPlayers, setSportsPlayers] = useState({ cricket: [], football: [] });
+
+  useEffect(() => {
+    const cricketPlayers = Array.from({ length: 100 }, (_, i) => `Cricket Player ${i + 1}`);
+    const footballPlayers = Array.from({ length: 100 }, (_, i) => `Football Player ${i + 1}`);
+    setSportsPlayers({ cricket: cricketPlayers, football: footballPlayers });
+  }, []);
+
+  const togglePlayer = (player) => {
+    if (selectedPlayers.includes(player)) {
+      setSelectedPlayers((prev) => prev.filter((p) => p !== player));
+    } else if (selectedPlayers.length < 11) {
+      setSelectedPlayers((prev) => [...prev, player]);
+    }
+  };
+
+  const joinContest = () => {
+    if (wallet >= 15) {
+      setWallet(wallet - 15);
+      setJoinedContest(true);
+    } else {
+      alert("Not enough balance to join contest");
+    }
+  };
+
+  const addMoney = (amount) => {
+    if (wallet + amount <= 2000) {
+      setWallet(wallet + amount);
+    } else {
+      alert("Max wallet limit is ₹2000");
+    }
+  };
+
+  const withdrawMoney = (amount) => {
+    if (wallet >= amount) {
+      setWallet(wallet - amount);
+      alert(`₹${amount} withdrawn to your selected payment method`);
+    } else {
+      alert("Not enough balance to withdraw");
+    }
+  };
+
+  const contests = [15, 20, 50, 90, 100, 150, 200];
+  const addAmounts = [15, 20, 25, 100, 200, 500];
+  const paymentMethods = ["Razorpay", "PhonePe", "Google Pay", "Paytm", "Debit Card"];
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-yellow-50 to-red-100 p-4">
+      <div className="max-w-md mx-auto mt-10">
+        <Card className="rounded-2xl shadow-lg p-6">
+          <CardContent>
+            <h1 className="text-xl font-bold mb-4">Welcome to Play Maha</h1>
+            {!loggedIn ? (
+              <div className="space-y-4">
+                <Input
+                  placeholder="Enter username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                />
+                <Button onClick={() => setLoggedIn(true)}>Login</Button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="font-semibold">Hi {username} 👋</div>
+                <div>Wallet Balance: ₹{wallet}</div>
+                <div className="space-x-2">
+                  {addAmounts.map((amt) => (
+                    <Button key={amt} onClick={() => addMoney(amt)}>
+                      Add ₹{amt}
+                    </Button>
+                  ))}
+                </div>
+                <div className="space-x-2">
+                  <Button onClick={() => withdrawMoney(100)}>Withdraw ₹100</Button>
+                </div>
+                <div className="space-y-2">
+                  <Input
+                    placeholder="Referral code (optional)"
+                    value={referralCode}
+                    onChange={(e) => setReferralCode(e.target.value)}
+                    disabled={usedReferral}
+                  />
+                  <Button
+                    onClick={() => setUsedReferral(true)}
+                    disabled={usedReferral || !referralCode}
+                  >
+                    Apply Referral
+                  </Button>
+                </div>
+                <Tabs defaultValue="cricket" onValueChange={setSelectedSport}>
+                  <TabsList>
+                    <TabsTrigger value="cricket">Cricket</TabsTrigger>
+                    <TabsTrigger value="football">Football</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="cricket">
+                    <PlayerSelector players={sportsPlayers.cricket} togglePlayer={togglePlayer} selectedPlayers={selectedPlayers} />
+                  </TabsContent>
+                  <TabsContent value="football">
+                    <PlayerSelector players={sportsPlayers.football} togglePlayer={togglePlayer} selectedPlayers={selectedPlayers} />
+                  </TabsContent>
+                </Tabs>
+                <div>Your Team ({selectedPlayers.length}/11): {selectedPlayers.join(", ")}</div>
+                <Button onClick={() => setTeamCreated(true)} disabled={selectedPlayers.length !== 11}>
+                  Create Team
+                </Button>
+                {teamCreated && !joinedContest && (
+                  <div className="space-y-2">
+                    <div className="font-semibold">Join Contest</div>
+                    {contests.map((amt) => (
+                      <Button key={amt} onClick={() => joinContest()}>
+                        Join ₹{amt} Contest
+                      </Button>
+                    ))}
+                  </div>
+                )}
+                {joinedContest && (
+                  <div className="font-semibold text-green-600">You joined the contest!</div>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+function PlayerSelector({ players, togglePlayer, selectedPlayers }) {
+  return (
+    <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-scroll">
+      {players.map((player) => (
+        <label key={player} className="flex items-center space-x-2">
+          <Checkbox
+            checked={selectedPlayers.includes(player)}
+            onCheckedChange={() => togglePlayer(player)}
+          />
+          <span>{player}</span>
+        </label>
+      ))}
+    </div>
+  );
+}
