@@ -158,3 +158,15 @@ function PlayerSelector({ players, togglePlayer, selectedPlayers }) {
     </div>
   );
 }
+// pages/index.tsx
+
+import PlayMahaApp from "../PlayMahaApp"; // adjust path if needed
+
+export default function Home() {
+  return <PlayMahaApp />;
+}
+// pages/index.tsx
+
+import PlayMahaApp from "../src/PlayMahaApp";
+
+}
